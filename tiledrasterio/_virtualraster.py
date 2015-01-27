@@ -42,7 +42,7 @@ class VirtualRaster():
             else:
                 out = np.zeros(window_shape, band.dtype)
         return band.read(out, window, masked)
-        
+                
     def open(self, mode = 'r', base_path = None):
         #map( lambda b: map( lambda s: s.open, b.sources ),self.bands)
         for b in self.bands:
@@ -50,25 +50,8 @@ class VirtualRaster():
                 s.open()
                 
     def close(self):
-        if not window:
-            window = ((0,self.height),(0,self.width))
-        if not out:
-            window_shape = rasterio._base.window_shape(window, self.height, self.width)
-            if masked:
-                out = np.ma.empty(window_shape, band.dtype)
-            else:
-                out = np.empty(window_shape, band.dtype)
-        return band.read(out, window, masked)
-        
-    def open(mode = 'r', base_path = None):
         #map( lambda b: map( lambda s: s.open, b.sources ),self.bands)
-        for b in bands:
-            for s in b.sources:
-                s.open()
-                
-    def close():
-        #map( lambda b: map( lambda s: s.open, b.sources ),self.bands)
-        for b in bands:
+        for b in self.bands:
             for s in b.sources:
                 s.close()
 
@@ -230,7 +213,7 @@ class Source():
             
         # Ok. Phew. Read
         print 'Read masked: ', masked
-        self.dataset.read_band(self.source_band, out=tmp_out, window=src_req_window, masked=masked)
+        tmp_out = self.dataset.read_band(self.source_band, out=tmp_out, window=src_req_window, masked=masked)
         print tmp_out
         
         # Put the data in out

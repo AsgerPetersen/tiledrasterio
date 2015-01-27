@@ -14,9 +14,6 @@ def create_virtual_raster():
     dataset = VirtualRaster((9,9))
     dataset.bands.append(band)
     return dataset
-    
-def test_has_legs():
-    assert not tiledrasterio.has_legs
 
 def test_read_full():
     expected = np.array(
@@ -31,7 +28,38 @@ def test_read_full():
          [    3,     8,    35,     3,     8,    35,     3,     8,    35]])
     ds = create_virtual_raster()
     ds.open()
-    actual = ds.read_band(1, masked=True)
-    
+    actual = ds.read_band(1)
+    ds.close()
     assert np.all(expected == actual)
+
+def test_read_masked():
+    expected = np.array(
+      [[ True,  True, False,  True,  True, False,  True,  True, False],
+       [ True, False, False,  True, False, False,  True, False, False],
+       [False, False, False, False, False, False, False, False, False],
+       [ True,  True, False,  True,  True, False,  True,  True, False],
+       [ True, False, False,  True, False, False,  True, False, False],
+       [False, False, False, False, False, False, False, False, False],
+       [ True,  True, False,  True,  True, False,  True,  True, False],
+       [ True, False, False,  True, False, False,  True, False, False],
+       [False, False, False, False, False, False, False, False, False]], dtype='bool')
+    ds = create_virtual_raster()
+    ds.open()
+    actual = ds.read_band(1, masked=True)
+    ds.close()
+    assert np.all(actual.mask == expected)    
     
+def test_read_full_scaled():
+    expected = np.array(
+      [[-9999,     5, -9999,     5, -9999,     5],
+       [    3,    35,     3,    35,     3,    35],
+       [-9999,     5, -9999,     5, -9999,     5],
+       [    3,    35,     3,    35,     3,    35],
+       [-9999,     5, -9999,     5, -9999,     5],
+       [    3,    35,     3,    35,     3,    35]], dtype='int32')
+    ds = create_virtual_raster()
+    ds.open()
+    out = np.zeros((6,6), dtype='int32')
+    actual = ds.read_band(1, out=out)
+    ds.close()
+    assert np.all(expected == actual)
