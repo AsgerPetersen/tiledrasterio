@@ -161,7 +161,6 @@ class Source():
         
         # Logic is roughly copied from GDAL's vrtsources.cpp
         req_window_shape = rasterio._base.window_shape(req_window)
-        print 'req_window_shape', req_window_shape
         
         # Does req_window overlap destination_window
         if not windows_overlap(self.destination_window, req_window):
@@ -169,11 +168,9 @@ class Source():
         
         # Crop req_window to not extent outside dest_window
         dest_req_window, req_window_changed = crop_window(req_window, self.destination_window)
-        print 'dest_req_window, req_window_changed', dest_req_window, req_window_changed
         
         # Translate req_window into source pix coords
         src_req_window = self._destination_to_source( dest_req_window )
-        print 'src_req_window', src_req_window
         
         # If the requested area does not overlap the source window
         if not windows_overlap(self.source_window, src_req_window):
@@ -181,16 +178,13 @@ class Source():
         
         # Crop source req window to be within source windowed bounds
         src_req_window, src_req_window_changed = crop_window(src_req_window, self.source_window)
-        print 'src_req_window, src_req_window_changed', src_req_window, src_req_window_changed
         
         # Transform the source req window back into destination pixel coordinates
         dest_req_window = self._source_to_destination(src_req_window)
-        print 'dest_req_window', dest_req_window
         
         # Where to put the data in the outarray        
         # Scale between original requested window and output buffer size
         scale_req_win_to_outarray = tuple( float(a)/b for a,b in zip(out.shape, req_window_shape) )
-        print 'scale_req_win_to_outarray', scale_req_win_to_outarray
         
         # Calculate resulting window into outarray
         out_start_row = int((dest_req_window[1][0]-req_window[1][0])*scale_req_win_to_outarray[1]+0.001)
@@ -199,7 +193,6 @@ class Source():
         out_end_col   = int((dest_req_window[0][1]-req_window[0][0])*scale_req_win_to_outarray[0]+0.001)
         
         out_window = ((out_start_row, out_end_row),(out_start_col, out_end_col))
-        print 'out_window', out_window
         out_window_shape = rasterio._base.window_shape(out_window)
         
         if out_window_shape[0] < 1 or out_window_shape[1] < 1:
@@ -212,11 +205,8 @@ class Source():
             tmp_out = np.zeros(out_window_shape, self.dataset.dtypes[0])
             
         # Ok. Phew. Read
-        print 'Read masked: ', masked
         tmp_out = self.dataset.read_band(self.source_band, out=tmp_out, window=src_req_window, masked=masked)
-        print tmp_out
         
         # Put the data in out
         out[ [slice(*dim) for dim in out_window] ] = tmp_out
-        print out
         return out
