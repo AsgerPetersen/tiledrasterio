@@ -1,9 +1,15 @@
+
 # coding: utf-8
+
+# In[1]:
 
 import os
 import rasterio
 from math import floor, ceil
 import numpy as np
+
+
+# In[24]:
 
 class VirtualRaster():
     def __init__(self, shape, transformation = None, proj4_crs = None):
@@ -27,27 +33,30 @@ class VirtualRaster():
         of the raster dataset.
         """
         band = self.bands[ bidx - 1]
-        if not window:
+        if window is None:
             window = ((0,self.height),(0,self.width))
-        if not out:
+        if out is None:
             window_shape = rasterio._base.window_shape(window, self.height, self.width)
             if masked:
-                out = np.ma.empty(window_shape, band.dtype)
+                out = np.ma.zeros(window_shape, band.dtype)
             else:
-                out = np.empty(window_shape, band.dtype)
+                out = np.zeros(window_shape, band.dtype)
         return band.read(out, window, masked)
         
-    def open(mode = 'r', base_path = None):
+    def open(self, mode = 'r', base_path = None):
         #map( lambda b: map( lambda s: s.open, b.sources ),self.bands)
-        for b in bands:
+        for b in self.bands:
             for s in b.sources:
                 s.open()
                 
-    def close():
+    def close(self):
         #map( lambda b: map( lambda s: s.open, b.sources ),self.bands)
         for b in bands:
             for s in b.sources:
                 s.close()
+
+
+# In[25]:
 
 class Band():
     def __init__(self, band_number, dtype, nodata = None):
@@ -61,6 +70,10 @@ class Band():
         map(lambda src: src.read(out, req_window, masked), self.sources)
         return out
         
+
+
+# In[26]:
+
 def crop_window(window, cropper_window):
     """Returns a version of window cropped against cropper_window. 
     Also returns a tuple containing two bools: (cropped_rows, cropped_cols)"""
@@ -80,12 +93,18 @@ def crop_window(window, cropper_window):
         changed_cols = True
     return ( (row_start,row_end),(col_start,col_end) ), (changed_rows, changed_cols)
 
+
+# In[27]:
+
 def windows_overlap(win1, win2):
         (ymin1, ymax1), (xmin1, xmax1) = win1
         (ymin2, ymax2), (xmin2, xmax2) = win2
-        if ymin1 > ymax2 or ymax1 < ymin2 or xmin1 > xmax2 or xmax1 < xmin2:
+        if ymin1 > ymax2 - 1 or ymax1 - 1 < ymin2 or xmin1 > xmax2 - 1 or xmax1 - 1 < xmin2:
             return False
         return True
+
+
+# In[28]:
 
 class Source():
     def __init__(self, path, source_band, source_window, destination_window, source_nodata = None):
@@ -142,6 +161,7 @@ class Source():
         Out is a numpy array."""
         
         # Logic is roughly copied from GDAL's vrtsources.cpp
+        print '-----------------------------------'
         
         req_window_shape = rasterio._base.window_shape(req_window)
         print 'req_window_shape', req_window_shape
@@ -159,7 +179,7 @@ class Source():
         print 'src_req_window', src_req_window
         
         # If the requested area does not overlap the source window
-        if not windows_overlap(self.source_window, dest_req_window):
+        if not windows_overlap(self.source_window, src_req_window):
             return
         
         # Crop source req window to be within source windowed bounds
@@ -190,14 +210,16 @@ class Source():
         
         # Create tmp array with source dtype and possibly masked
         if masked:
-            tmp_out = np.ma.empty(out_window_shape, src.dataset.dtypes[0]) 
+            tmp_out = np.ma.zeros(out_window_shape, self.dataset.dtypes[0]) 
         else:
-            tmp_out = np.empty(out_window_shape, src.dataset.dtypes[0])
+            tmp_out = np.zeros(out_window_shape, self.dataset.dtypes[0])
             
         # Ok. Phew. Read
-        self.dataset.read_band(self.source_band, out=tmp_out, window=src_req_window, masked=masked)        
+        print 'Read masked: ', masked
+        self.dataset.read_band(self.source_band, out=tmp_out, window=src_req_window, masked=masked)
+        print tmp_out
         
         # Put the data in out
         out[ [slice(*dim) for dim in out_window] ] = tmp_out
-        
+        print out
         return out
