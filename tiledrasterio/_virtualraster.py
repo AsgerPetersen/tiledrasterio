@@ -50,11 +50,27 @@ class VirtualRaster():
                 s.open()
                 
     def close(self):
+        if not window:
+            window = ((0,self.height),(0,self.width))
+        if not out:
+            window_shape = rasterio._base.window_shape(window, self.height, self.width)
+            if masked:
+                out = np.ma.empty(window_shape, band.dtype)
+            else:
+                out = np.empty(window_shape, band.dtype)
+        return band.read(out, window, masked)
+        
+    def open(mode = 'r', base_path = None):
+        #map( lambda b: map( lambda s: s.open, b.sources ),self.bands)
+        for b in bands:
+            for s in b.sources:
+                s.open()
+                
+    def close():
         #map( lambda b: map( lambda s: s.open, b.sources ),self.bands)
         for b in bands:
             for s in b.sources:
                 s.close()
-
 
 # In[25]:
 
@@ -161,8 +177,6 @@ class Source():
         Out is a numpy array."""
         
         # Logic is roughly copied from GDAL's vrtsources.cpp
-        print '-----------------------------------'
-        
         req_window_shape = rasterio._base.window_shape(req_window)
         print 'req_window_shape', req_window_shape
         
