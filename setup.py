@@ -4,13 +4,13 @@ from setuptools import setup, find_packages
 
 # Get the long description from the relevant file
 with codecs_open('README.rst', encoding='utf-8') as f:
-    long_description = f.read()
+    readme = f.read()
 
 
 setup(name='myproject',
       version='0.0.1',
-      description=u"Tiled raster io"
-      long_description=long_description,
+      description=u"Tiled raster io",
+      long_description=readme,
       classifiers=[],
       keywords='',
       author=u"Asger Skovbo Petersen",
