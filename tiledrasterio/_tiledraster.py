@@ -6,7 +6,7 @@ class TiledRaster():
     def __init__(self,vrtfile):
         self.vrt = parse_vrt(vrtfile)
         self.vrtfile = self.vrt['filename']
-        self.shape =  tuple([int(size) for size in self.vrt['shape']])
+        self.shape =  tuple(self.vrt['shape'])
         self.basepath = self.vrt['rootpath']
         
     def tiles(self, bandnumber = 1):

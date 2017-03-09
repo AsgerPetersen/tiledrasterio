@@ -14,7 +14,7 @@ def parse_vrt( filename ):
     
     xmltree = ET.parse( filename )
     xmlroot = xmltree.getroot()
-    vrt["shape"] = (float(xmlroot.attrib['rasterYSize']), float(xmlroot.attrib['rasterXSize']))
+    vrt["shape"] = (int(xmlroot.attrib['rasterYSize']), int(xmlroot.attrib['rasterXSize']))
     
     # Iterate over children of root
     for rootchild in xmlroot:
